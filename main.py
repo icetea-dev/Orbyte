@@ -23,7 +23,7 @@ except ImportError as e:
     print("Make sure all required files are in the same directory.")
     sys.exit(1)
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 REPO_RAW_URL = "https://raw.githubusercontent.com/icetea-dev/Orbyte/main"
 
 class SelfbotApplication:
