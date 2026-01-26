@@ -30,7 +30,7 @@ A comprehensive dual-instance Discord bot specifically designed for power users.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/discord-selfbot-controller.git
+   git clone https://github.com/icetea-dev/Orbyte.git
    cd discord-selfbot-controller
    ```
 
