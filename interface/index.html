@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+        font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
+        img-src 'self' https: data: file:;
+        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
+        connect-src 'self' https:;
+        worker-src 'self' blob:;
+    ">
+    <title>Orbyte - Selfbot</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="loadingScreen" class="loading-screen full-animated-bg">
+        <div class="reactor-container">
+            <div class="reactor-ring ring-1"></div>
+            <div class="reactor-ring ring-2"></div>
+            <div class="reactor-ring ring-3"></div>
+            <div class="reactor-core"></div>
+
+            <div class="glitch-logo" data-text="ORBYTE">ORBYTE</div>
+
+            <div class="loading-content">
+                <div id="loadingStatus" class="loading-subtext">SYSTEM INITIALIZATION</div>
+                <div class="loading-progress-container">
+                    <div id="loadingProgressBar" class="loading-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token Modal -->
+    <div id="tokenModal" class="token-modal">
+        <div class="token-modal-content">
+            <h2 class="token-modal-title">Selfbot Authentication</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 10px; font-size: 0.9em;">Please enter your
+                <strong>User Token</strong> (not a bot token).
+            </p>
+            <p class="token-modal-error" id="tokenError"></p>
+            <input type="password" id="tokenInput" placeholder="Enter User Token...">
+            <button id="submitTokenBtn" class="btn">CONNECT</button>
+        </div>
+    </div>
+
+    <!-- Controller Setup Modal -->
+    <div id="controllerModal" class="token-modal"
+        style="display: none; z-index: 2147483647; position: fixed; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; background: rgba(0,0,0,0.85);">
+        <div class="token-modal-content" style="max-width: 800px;">
+            <!-- View 1: Setup Form -->
+            <div id="controllerSetupView">
+                <h2 class="token-modal-title">Controller App Setup</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 15px; font-size: 0.9em;">
+                    To use Slash Commands everywhere, you need a <strong>User-Installed Bot</strong> (Controller).
+                </p>
+                <p class="token-modal-error" id="controllerError"></p>
+
+                <input type="password" id="controllerTokenInput" placeholder="Enter Bot Token..."
+                    style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glow); border-radius: 4px; color: #fff; margin-bottom: 20px;">
+
+                <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+                    <button id="guideControllerBtn"
+                        style="background: transparent; border: 1px solid var(--accent-cyan); padding: 8px 15px; color: var(--accent-cyan); cursor: pointer; font-size: 0.8em; border-radius: 4px;">❓
+                        Setup Guide</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="skipControllerBtn"
+                            style="background: rgba(255,255,255,0.1); border: none; padding: 10px 20px; color: var(--text-secondary); cursor: pointer; border-radius: 4px;">Skip</button>
+                        <button id="saveControllerBtn"
+                            style="background: var(--accent-cyan); border: none; padding: 10px 20px; color: #000; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0,191,255,0.4); border-radius: 4px;">Save
+                            & Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 2: Guide (Hidden by default) -->
+            <div id="controllerGuideView"
+                style="display: none; text-align: left; animation: modalSlideIn 0.3s ease-out;">
+                <h2 class="token-modal-title" style="text-align: center; margin-bottom: 15px;">Controller Setup Guide
+                </h2>
+                <div
+                    style="max-height: 450px; overflow-y: auto; color: var(--text-primary); font-size: 0.9em; line-height: 1.6; padding-right: 10px;">
+                    <ol style="margin-left: 40px; margin-bottom: 20px;">
+                        <li style="margin-bottom: 8px;">Go to <a href="#" style="color: var(--accent-cyan);"
+                                onclick="window.pywebview.api.open_url('https://discord.com/developers/applications'); return false;">Discord
+                                Developer Portal</a>.</li>
+                        <li style="margin-bottom: 8px;">Click <strong>New Application</strong> -> Name it (e.g.
+                            "MyController").</li>
+                        <li style="margin-bottom: 8px;">Go to <strong>Installation</strong> tab.</li>
+                        <li style="margin-bottom: 8px;">Uncheck "Guild Install". Check <strong>"User Install"</strong>.
+                        </li>
+                        <li style="margin-bottom: 8px;">In "Install Link", select "None".</li>
+                        <li style="margin-bottom: 8px;">Go to <strong>Bot</strong> tab.</li>
+                        <li style="margin-bottom: 8px;"><strong>IMPORTANT:</strong> Uncheck "Public Bot".</li>
+                        <li style="margin-bottom: 8px;">Click <strong>Reset Token</strong> -> Copy it (This is your Bot
+                            Token).</li>
+                        <li style="margin-bottom: 8px;">Go to <strong>General Information</strong> -> Copy
+                            <strong>Application ID</strong>.
+                        </li>
+                        <li style="margin-bottom: 8px;">
+                            Replace YOUR_ID in this link:
+                            <div
+                                style="display:flex; gap:10px; align-items:center; margin-top:5px; background:rgba(0,0,0,0.2); padding:8px; border-radius:4px;">
+                                <code id="authUrl"
+                                    style="word-break:break-all; font-family:'Fira Code', monospace;">https://discord.com/oauth2/authorize?client_id=YOUR_ID&integration_type=1&scope=applications.commands</code>
+                                <button class="btn" style="padding:4px 10px; font-size:0.8em; min-width:60px;"
+                                    onclick="navigator.clipboard.writeText(document.getElementById('authUrl').innerText); const b=this; b.innerText='Copied!'; setTimeout(()=>b.innerText='Copy', 1500);">Copy</button>
+                            </div>
+                        </li>
+                        <li style="margin-bottom: 8px;">Open that link in your browser to Authorize the bot on your
+                            account.</li>
+                    </ol>
+                    <p style="color: var(--accent-cyan); text-align: center; font-weight: bold;">Once authorized, paste
+                        the Bot Token here.</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn" id="backToSetupBtn">Back to Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="orbyte-app">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>ORBYTE</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">Dashboard</a>
+                <a href="#" class="nav-item" data-page="editor">Code Editor</a>
+                <a href="#" class="nav-item" data-page="activity">Activity</a>
+                <a href="#" class="nav-item" data-page="rpc">RPC</a>
+                <a href="#" class="nav-item" data-page="settings">Settings</a>
+            </nav>
+        </div>
+        <div class="main-content">
+            <div id="dashboard" class="page active">
+                <div class="dashboard-container">
+                    <div class="panel user-profile-panel">
+                        <div class="user-profile-content">
+                            <div class="user-avatar"><img src="" id="avatarImg"></div>
+                            <h2 class="user-name" id="userName">...</h2>
+                            <p class="user-id" id="userId">...</p>
+                            <div class="badges-container" id="userInfoBadges"></div>
+                            <div class="user-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Nitro</span>
+                                    <span class="detail-value" id="userInfoNitro">...</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">User ID</span>
+                                    <span class="detail-value" id="userIdInfo">...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel stats-panel">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <span class="stat-label">Servers</span>
+                                <div class="stat-value" id="serverCount">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Friends</span>
+                                <div class="stat-value" id="friendCount">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-label">Uptime</span>
+                                <div class="stat-value" id="uptime">00:00:00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel activity-log-panel">
+                        <div class="activity-log-header">
+                            <h3>Activity Log</h3>
+                        </div>
+                        <div class="activity-log-content" id="activityLog">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="editor" class="page">
+                <div class="editor-flex-layout">
+                    <div class="scripts-sidebar" id="scriptsSidebar">
+                        <div class="scripts-header">
+                            <span>Scripts</span>
+                            <button id="newScriptBtn" title="New script">+</button>
+                        </div>
+
+                        <!-- NEW: viewport scrollable -->
+                        <div class="scripts-list-viewport" id="scriptsListViewport">
+                            <ul class="scripts-list" id="scriptsList">
+                                <!-- List of .py scripts will be injected here -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="editor-main">
+                        <div class="editor-top-bar">
+                            <ul class="editor-tabs" id="editorTabs">
+                                <!-- Tabs for open scripts will be injected here -->
+                            </ul>
+                            <div class="editor-actions">
+                                <button id="runScriptBtn" class="editor-action-btn run" title="Run Script (Ctrl+Enter)">
+                                    <span class="icon">▶</span> Run
+                                </button>
+                                <button id="stopScriptBtn" class="editor-action-btn stop" title="Stop Script"
+                                    style="display:none;">
+                                    <span class="icon">⏹</span> Stop
+                                </button>
+                            </div>
+                        </div>
+                        <div class="code-editor-container" id="codeEditorWrapper">
+                            <div id="codeEditorContainer">
+                                <!-- Monaco editor will be injected here -->
+                            </div>
+                        </div>
+                        <div class="editor-error-bar" id="editorErrorBar" style="display:none;"></div>
+
+                        <!-- SCRIPT CONSOLE -->
+                        <div class="console-panel" id="consolePanel">
+                            <div class="console-header">
+                                <span>Console Output</span>
+                                <button id="clearConsoleBtn" class="console-action-btn"
+                                    title="Clear Console">Clear</button>
+                            </div>
+                            <div class="console-content" id="consoleOutput"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="activity" class="page">
+                <div class="activity-dashboard">
+                    <div class="activity-toolbar">
+                        <select id="timeRangeSelector">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="60">Last 60 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="all">All time</option>
+                        </select>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3 class="chart-title">Messages Sent</h3>
+                            <canvas id="messagesChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">Reactions Added</h3>
+                            <canvas id="reactionsChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">Pings Received</h3>
+                            <canvas id="pingsChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">Servers Joined</h3>
+                            <canvas id="serversChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="rpc" class="page">
+                <div class="rpc-dashboard-layout">
+                    <!-- LEFT COLUMN: CONFIG -->
+                    <div class="rpc-config-section">
+
+                        <div class="rpc-header-card glass-panel">
+                            <div class="rpc-toggle-row">
+                                <div class="rpc-toggle-info">
+                                    <h3>Rich Presence</h3>
+                                    <p id="rpcStatusText" class="status-text">Disabled</p>
+                                </div>
+                                <label class="timestamp-toggle">
+                                    <input type="checkbox" id="rpcToggle">
+                                    <span class="toggle-slider large"></span>
+                                </label>
+                            </div>
+                            <div id="rpcErrorContainer" class="rpc-error" style="display: none;"></div>
+                        </div>
+
+                        <!-- Hidden App ID field (auto-fetched from Controller) -->
+                        <input type="hidden" id="rpcAppId">
+                        <div id="rpcControllerStatus" style="display:none;"></div>
+
+
+                        <div class="settings-group glass-panel">
+                            <h3 class="group-title">Activity Info</h3>
+                            <div class="input-group">
+                                <label>Application Name</label>
+                                <input type="text" id="rpcName" placeholder="My Cool Game">
+                            </div>
+                            <div class="input-group">
+                                <label>Details (Line 1)</label>
+                                <input type="text" id="rpcDetails" placeholder="Competing in...">
+                            </div>
+                            <div class="input-group">
+                                <label>State (Line 2)</label>
+                                <input type="text" id="rpcState" placeholder="Ranked Match">
+                            </div>
+
+                            <div class="timestamp-row">
+                                <label class="timestamp-toggle">
+                                    <input type="checkbox" id="rpcTimestamp">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Show Time Elapsed</span>
+                                </label>
+                                <div class="timestamp-offset">
+                                    <input type="number" id="rpcCustomTime" placeholder="0" min="0">
+                                    <span class="offset-label">hours offset</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group glass-panel">
+                            <h3 class="group-title">Visual Assets</h3>
+
+                            <!-- Large Image -->
+                            <div class="asset-config-row">
+                                <div class="asset-preview-box large">
+                                    <img id="rpcLargeImagePreview" src="https://cdn.discordapp.com/embed/avatars/0.png">
+                                </div>
+                                <div class="asset-inputs">
+                                    <div class="input-group">
+                                        <label>Large Image URL</label>
+                                        <input type="text" id="rpcLargeImageKey" placeholder="https://...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Hover Text</label>
+                                        <input type="text" id="rpcLargeImageText" placeholder="Image Tooltip">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="separator"></div>
+
+                            <!-- Small Image -->
+                            <div class="asset-config-row">
+                                <div class="asset-preview-box small">
+                                    <div class="asset-preview-relative">
+                                        <img id="rpcLargeImagePreviewBg"
+                                            src="https://cdn.discordapp.com/embed/avatars/0.png" class="bg-ref">
+                                        <img id="rpcSmallImagePreview"
+                                            src="https://cdn.discordapp.com/embed/avatars/1.png" class="fg-small">
+                                    </div>
+                                </div>
+                                <div class="asset-inputs">
+                                    <div class="input-group">
+                                        <label>Small Image URL</label>
+                                        <input type="text" id="rpcSmallImageKey" placeholder="https://...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Hover Text</label>
+                                        <input type="text" id="rpcSmallImageText" placeholder="Image Tooltip">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="settings-group glass-panel">
+                            <h3 class="group-title">Buttons (Max 2)</h3>
+                            <div class="input-row-flex">
+                                <div class="input-group" style="flex: 1;">
+                                    <label>Button 1 Label</label>
+                                    <input type="text" id="rpcButton1Label" placeholder="Join Game" maxlength="32">
+                                </div>
+                                <div class="input-group" style="flex: 2;">
+                                    <label>Button 1 URL</label>
+                                    <input type="text" id="rpcButton1Url" placeholder="https://...">
+                                </div>
+                            </div>
+                            <div class="input-row-flex">
+                                <div class="input-group" style="flex: 1;">
+                                    <label>Button 2 Label</label>
+                                    <input type="text" id="rpcButton2Label" placeholder="Website" maxlength="32">
+                                </div>
+                                <div class="input-group" style="flex: 2;">
+                                    <label>Button 2 URL</label>
+                                    <input type="text" id="rpcButton2Url" placeholder="https://...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: PREVIEW -->
+                    <div class="rpc-preview-section">
+                        <div class="rpc-preview-sticky glass-panel">
+                            <h3>Preview</h3>
+                            <div class="discord-activity-card">
+                                <div class="activity-header">PLAYING A GAME</div>
+                                <div class="activity-body">
+                                    <div class="activity-assets">
+                                        <img id="previewLargeImage" class="act-large-image"
+                                            src="https://cdn.discordapp.com/embed/avatars/0.png">
+                                        <img id="previewSmallImage" class="act-small-image"
+                                            src="https://cdn.discordapp.com/embed/avatars/1.png" style="display:none;">
+                                    </div>
+                                    <div class="activity-info">
+                                        <div class="activity-name" id="previewName">My Game</div>
+                                        <div class="activity-details" id="previewDetails"></div>
+                                        <div class="activity-state" id="previewState"></div>
+                                        <div class="activity-timestamp" id="previewTimestamp" style="display:none;">
+                                            00:00:00 elapsed</div>
+                                    </div>
+                                </div>
+                                <div class="activity-buttons" id="previewButtons" style="display:none;">
+                                    <button class="rpc-btn" id="previewBtn1">Button 1</button>
+                                    <button class="rpc-btn" id="previewBtn2" style="display:none;">Button 2</button>
+                                </div>
+                            </div>
+                            <p class="preview-note">Visual approximation of Discord's profile card.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="settings" class="page">
+                <div class="settings-page-container"
+                    style="display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 600px; margin: 0 auto;">
+
+                    <!-- Unified Settings Card -->
+                    <div class="settings-card glass-panel">
+                        <h2 class="settings-title"
+                            style="text-align: center; color: var(--accent-cyan); margin-bottom: 2rem;">App Settings
+                        </h2>
+
+                        <!-- General Section -->
+                        <div class="setting-section">
+                            <h3
+                                style="color: var(--text-secondary); font-size: 1.1em; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; margin-bottom: 15px;">
+                                General</h3>
+
+                            <div class="setting-row"
+                                style="flex-direction: column; align-items: stretch; gap: 1.5rem; border: none;">
+                                <div class="setting-group">
+                                    <label
+                                        style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Prefix</label>
+                                    <input type="text" id="commandPrefixInput" class="setting-input"
+                                        style="width: 100%; text-align: left;" placeholder="!">
+                                </div>
+
+                                <div class="setting-group">
+                                    <label
+                                        style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Background
+                                        UI (path or URL)</label>
+                                    <input type="text" id="backgroundFileInput" class="setting-input"
+                                        style="width: 100%; text-align: left;"
+                                        placeholder="https://... or C:\Path\To\Image.png">
+                                </div>
+
+                                <button id="saveSettingsBtn" class="btn"
+                                    style="width: 100%; margin-top: 0.5rem; background: var(--accent-cyan); color: var(--bg-deep-space); font-weight: bold;">Save
+                                    General Settings</button>
+                            </div>
+                        </div>
+
+                        <!-- Platform Section -->
+                        <div class="setting-section" style="margin-top: 2rem;">
+                            <h3
+                                style="color: var(--text-secondary); font-size: 1.1em; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; margin-bottom: 15px;">
+                                Platform Spoofing</h3>
+
+                            <div class="setting-row"
+                                style="flex-direction: column; align-items: stretch; gap: 1.5rem; border: none;">
+                                <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: -5px;">
+                                    Requires restart to apply.
+                                </p>
+                                <div class="setting-group">
+                                    <label
+                                        style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Device
+                                        Platform</label>
+                                    <select id="platformSelect" class="setting-input"
+                                        style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid var(--border-glow); border-radius: 4px;">
+                                        <option value="desktop">Desktop (Windows)</option>
+                                        <option value="mobile">Mobile (iOS)</option>
+                                        <option value="web">Web Browser</option>
+                                        <option value="playstation">PlayStation 5</option>
+                                    </select>
+                                </div>
+                                <button id="savePlatformBtn" class="btn"
+                                    style="width: 100%; margin-top: 0.5rem; background: var(--accent-cyan); color: var(--bg-deep-space); font-weight: bold;">Save
+                                    Platform</button>
+                            </div>
+                        </div>
+
+                        <!-- Embed Section -->
+                        <div class="setting-section" style="margin-top: 2rem;">
+                            <h3
+                                style="color: var(--text-secondary); font-size: 1.1em; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px; margin-bottom: 15px;">
+                                Embed Customization</h3>
+
+                            <div style="text-align: center;">
+                                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9em;">
+                                    Customize default embed appearance.</p>
+                                <button id="openEmbedEditorBtn" class="btn"
+                                    style="background: rgba(255, 255, 255, 0.05); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); font-weight: bold; padding: 10px 30px; width: 100%; transition: all 0.2s;">
+                                    🎨 Open Editor
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embed Editor Modal -->
+    <div id="embedEditorModal" class="embed-editor-modal" style="display: none;">
+        <div class="embed-editor-content">
+            <div class="embed-editor-header">
+                <h2 style="color: var(--accent-cyan);">🎨 Embed Editor</h2>
+                <button id="closeEmbedEditorBtn" class="embed-editor-close">&times;</button>
+            </div>
+            <div class="embed-editor-body">
+                <!-- Left: Settings -->
+                <div class="embed-editor-settings">
+                    <div class="embed-setting-group">
+                        <label>Author Icon URL</label>
+                        <input type="text" id="embedAuthorIconInput" placeholder="https://...">
+                    </div>
+                    <div class="embed-setting-group">
+                        <label>Author Text</label>
+                        <input type="text" id="embedAuthorTextInput" placeholder="Orbyte">
+                    </div>
+                    <div class="embed-setting-group">
+                        <label>Thumbnail URL</label>
+                        <input type="text" id="embedThumbnailInput" placeholder="https://...">
+                    </div>
+                    <div class="embed-setting-group">
+                        <label>Footer Icon URL</label>
+                        <input type="text" id="embedFooterIconInput" placeholder="https://...">
+                    </div>
+                    <div class="embed-setting-group">
+                        <label>Footer Text</label>
+                        <input type="text" id="embedFooterTextInput" placeholder="# Orbyte Selfbot">
+                    </div>
+                    <div class="embed-setting-group">
+                        <label>Embed Color</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="embedColorPicker"
+                                style="width: 50px; height: 38px; border: none; cursor: pointer;">
+                            <input type="text" id="embedColorInput" placeholder="2b2d31" maxlength="6">
+                        </div>
+                    </div>
+                    <button id="saveEmbedSettingsBtn" class="btn"
+                        style="width: 100%; margin-top: 1rem; background: var(--accent-cyan); color: var(--bg-deep-space); font-weight: bold;">
+                        💾 Save Settings
+                    </button>
+                </div>
+                <!-- Right: Live Preview -->
+                <div class="embed-editor-preview">
+                    <h3>Preview</h3>
+                    <div class="embed-preview-card" id="embedPreviewCard">
+                        <div class="embed-preview-author">
+                            <img id="embedPreviewAuthorIcon" src="" style="display: none;">
+                            <span id="embedPreviewAuthorName">Orbyte announcement</span>
+                        </div>
+                        <div class="embed-preview-body">
+                            <div class="embed-preview-content">
+                                <div id="embedPreviewBrandText"
+                                    style="font-weight: bold; color: #fff; margin-bottom: 8px;">Fatality.win</div>
+                                <div id="embedPreviewDesc" style="font-size: 0.9em; color: #dcddde; line-height: 1.5;">
+                                    <strong>Get Orbyte Now!</strong><br>
+                                    The most advanced selfbot on the market.<br><br>
+                                    🚀 <strong>Features</strong><br>
+                                    • Undetectable & Secure<br>
+                                    • Custom Rich Presence<br>
+                                    • Nitro Sniper & Spammer<br>
+                                    • 24/7 Uptime Support
+                                </div>
+                            </div>
+                            <img id="embedPreviewThumbnail" class="embed-preview-thumb" src="" style="display: none;">
+                        </div>
+                        <div class="embed-preview-footer">
+                            <img id="embedPreviewFooterIcon" src="" style="display: none;">
+                            <span id="embedPreviewFooterText"># Orbyte Selfbot</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="global-tooltip" style="display:none; position:fixed; z-index:99999; pointer-events:none;"></div>
+
+    <!-- Load libraries first -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+    <!-- Load main application script -->
+    <script defer src="app.js"></script>
+</body>
+
+</html>

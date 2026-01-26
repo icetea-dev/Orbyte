@@ -1,0 +1,18 @@
+[
+    "main.py",
+    "bot_worker.py",
+    "controller_worker.py",
+    "config_manager.py",
+    "ui_web.py",
+    "platform_spoofer.py",
+    "controller_commands.py",
+    "requirements.txt",
+    "interface/app.js",
+    "interface/index.html",
+    "interface/style.css",
+    "controller_cogs/embed.py",
+    "controller_cogs/general.py",
+    "controller_cogs/info.py",
+    "controller_cogs/settings.py",
+    "controller_cogs/troll.py"
+]

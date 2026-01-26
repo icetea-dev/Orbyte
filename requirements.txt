@@ -1,0 +1,5 @@
+pywebview==4.4.1
+asyncio
+aiofiles==23.2.1
+colorama==0.4.6
+requests==2.31.0
