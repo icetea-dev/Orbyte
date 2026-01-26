@@ -163,7 +163,6 @@ class SelfbotApplication:
                         self.logger.info(f"Update available! v{APP_VERSION} -> v{remote_version}")
                     
                     # Launch Updater
-                    # We pass the repo url to the updater script
                     import subprocess
                     
                     updater_script = "updater.py"
@@ -175,7 +174,6 @@ class SelfbotApplication:
                     if self.logger:
                         self.logger.info("Launching updater and closing application...")
                     
-                    # Spawn updater in a new console (Windows specific mainly)
                     creation_flags = 0
                     if sys.platform == "win32":
                         creation_flags = subprocess.CREATE_NEW_CONSOLE
@@ -185,13 +183,12 @@ class SelfbotApplication:
                         creationflags=creation_flags
                     )
                     
-                    # Exit immediately
                     sys.exit(0)
                 else:
-                     if self.logger:
+                    if self.logger:
                         self.logger.info("Application is up to date.")
             else:
-                 if self.logger: 
+                if self.logger:
                     self.logger.warning(f"Could not check for updates (Status: {r.status_code}). Skipping.")
 
         except SystemExit:
