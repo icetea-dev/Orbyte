@@ -3296,3 +3296,8 @@ body {
     font-size: 0.75rem;
     color: #72767d;
 }
+
+select option {
+    background-color: var(--bg-deep-space);
+    color: var(--text-primary);
+}
