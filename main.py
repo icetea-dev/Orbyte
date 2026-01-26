@@ -268,7 +268,6 @@ class SelfbotApplication:
         if self.logger:
             self.logger.info("Cleaning up...")
         
-        # Stop bot if running, using the new thread-safe shutdown method
         if self.bot_worker and self.bot_worker.is_running:
             self.logger.info("Bot is running, initiating shutdown...")
             self.bot_worker.shutdown()
@@ -279,7 +278,7 @@ class SelfbotApplication:
 def parse_arguments():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Discord Selfbot with Modern Web UI",
+        description="Discord Selfbot",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -320,7 +319,6 @@ def check_python_version():
 
 def main():
     """Main entry point"""
-    # Check Python version
     if not check_python_version():
         sys.exit(1)
     
