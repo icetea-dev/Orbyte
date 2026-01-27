@@ -59,13 +59,30 @@ The application automatically checks for updates on startup.
 
 
 ## 📝 Scripting API
-The built-in scripting engine allows access to the `bot` instance. Example:
+The built-in scripting engine provides a powerful environment for customizing the bot. 
+ **Exposed Variables:**
+- `bot`: The selfbot instance (wrapper).
+- `discord`: The `discord.py-self` library.
+- `asyncio`: The `asyncio` library.
+- `commands`: The `discord.ext.commands` module.
+- `ctx`: Context (available depending on scope).
+- `print`: Redirected to the real-time script console.
+
+**Checking Custom Libraries:**
+You can import any standard Python library (e.g., `import math`, `import random`) or installed package directly in your script.
+
+Example:
 ```python
 # Simple auto-reply script
 @bot.event
 async def on_message(message):
     if message.content == "ping":
         await message.channel.send("pong")
+
+# Custom Command Example
+@bot.command()
+async def hello(ctx):
+    await ctx.send("Hello from the Selfbot Scripting Engine!")
 ```
 
 
