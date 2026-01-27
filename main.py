@@ -23,7 +23,7 @@ except ImportError as e:
     print("Make sure all required files are in the same directory.")
     sys.exit(1)
 
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 REPO_RAW_URL = "https://raw.githubusercontent.com/icetea-dev/Orbyte/main"
 
 class SelfbotApplication:
@@ -117,6 +117,24 @@ class SelfbotApplication:
                 self.logger.error(f"Missing required modules: {missing_modules}")
                 self.logger.error("Please install dependencies: pip install -r requirements.txt")
             return False
+
+        try:
+            from importlib.metadata import distribution, PackageNotFoundError
+            try:
+                dist = distribution('discord.py')
+                if dist:
+                    if self.logger:
+                        self.logger.critical("CONFLICT DETECTED: Standard 'discord.py' is installed!")
+                        self.logger.critical("This application requires 'discord.py-self'.")
+                        self.logger.critical("The standard 'discord.py' library will override 'discord.py-self' and break functionality.")
+                        self.logger.critical("PLEASE RUN: pip uninstall discord.py")
+                        self.logger.critical("THEN GO ON THE REPO: https://github.com/icetea-dev/Orbyte and download the discord.py-self")
+                        self.logger.critical("THEN: put the discord.py-self in the same directory as the main.py")
+                    return False
+            except PackageNotFoundError:
+                pass
+        except ImportError:
+            pass
         
         return True
     
