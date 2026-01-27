@@ -5,6 +5,9 @@ A comprehensive dual-instance Discord bot specifically designed for power users.
 > **⚠️ DISCLAIMER**  
 > Automating user accounts ("Selfbotting") is against Discord's Terms of Service. This software is for **educational purposes only**. The developers are not responsible for any account bans or suspensions resulting from the use of this tool. Use at your own risk.
 
+## Preview
+![Orbyte Selfbot](image/image.png)
+
 ## 🚀 Key Features
 
 ### 🤖 Dual-Core Architecture
