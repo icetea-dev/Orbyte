@@ -31,7 +31,7 @@ A comprehensive dual-instance Discord bot specifically designed for power users.
 1. **Clone the repository**
    ```bash
    git clone https://github.com/icetea-dev/Orbyte.git
-   cd discord-selfbot-controller
+   cd Orbyte
    ```
 
 2. **Install dependencies**
