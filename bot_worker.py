@@ -680,8 +680,6 @@ class BotWorker:
             return {'success': False, 'error': 'Bot not running'}
 
         try:
-            self.logger.info(f"Setting Presence with discord.py-self: {data}")
-            
             app_id = data.get('application_id')
             if not app_id:
                 return {'success': False, 'error': 'Application ID is required'}
@@ -740,12 +738,31 @@ class BotWorker:
                 # Handle buttons
                 buttons = data.get('buttons')
                 if buttons and isinstance(buttons, list) and len(buttons) > 0:
-                    button_labels = [btn['label'] for btn in buttons[:2] if btn.get('label')]
-                    if button_labels:
-                        activity_kwargs['buttons'] = button_labels
+                    formatted_buttons = []
+                    for btn in buttons[:2]:
+                        label = btn.get('label')
+                        url = btn.get('url')
+                        if label and url:
+                            formatted_buttons.append(discord.ActivityButton(label=label, url=url))
+                    
+                    if formatted_buttons:
+                        activity_kwargs['buttons'] = formatted_buttons
                 
-                activity = discord.Activity(**activity_kwargs)
-                await self.client.change_presence(activity=activity)
+                current_status = self.client.status
+                existing_activities = self.client.activities
+                custom_activity = None
+                for a in existing_activities:
+                    if a.type == discord.ActivityType.custom:
+                        custom_activity = a
+                        break
+                
+                new_activity = discord.Activity(**activity_kwargs)
+                
+                final_activities = [new_activity]
+                if custom_activity:
+                    final_activities.append(custom_activity)
+
+                await self.client.change_presence(activities=final_activities, status=current_status)
             
             if self.loop:
                 asyncio.run_coroutine_threadsafe(_set(), self.loop).result(timeout=15)
@@ -764,10 +781,18 @@ class BotWorker:
         
         try:
             async def _clear():
-                await self.client.change_presence(activity=None)
-            
-            if self.loop:
-                asyncio.run_coroutine_threadsafe(_clear(), self.loop).result(timeout=10)
+                # Preserve current status (Online, Idle, DND)
+                current_status = self.client.status
+
+                # Preserve Custom Status (Text) - Keep only CustomActivity
+                existing_activities = self.client.activities
+                final_activities = []
+                for a in existing_activities:
+                    if a.type == discord.ActivityType.custom:
+                        final_activities.append(a)
+                        break
+                
+                await self.client.change_presence(activities=final_activities, status=current_status)
             
             self.logger.info("Presence cleared")
             return {'success': True}
