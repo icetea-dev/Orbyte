@@ -40,7 +40,8 @@ class BotWorker:
         logging.getLogger('discord').setLevel(logging.WARNING)
 
         # Initialize Database
-        self.db_path = "activity.db"
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.db_path = os.path.join(self.base_dir, "activity.db")
         self._init_db()
         
         # Track resources created by scripts
@@ -50,7 +51,9 @@ class BotWorker:
     def _init_db(self):
         """Initialize sqlite database for activity logs."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=10.0)
+            # Enable WAL mode for better concurrency
+            conn.execute("PRAGMA journal_mode=WAL")
             c = conn.cursor()
             # Activity Log
             c.execute('''CREATE TABLE IF NOT EXISTS activity_log
@@ -78,7 +81,7 @@ class BotWorker:
     def log_activity(self, activity_type: str):
         """Log an activity to the database."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=10.0)
             c = conn.cursor()
             c.execute("INSERT INTO activity_log (type) VALUES (?)", (activity_type,))
             conn.commit()
@@ -89,7 +92,7 @@ class BotWorker:
     def _track_username(self, user_id, username):
         """Internal helper to save username history."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=10.0)
             c = conn.cursor()
             # Check if the latest entry is different to avoid dupes
             c.execute("SELECT username FROM user_history WHERE user_id=? ORDER BY timestamp DESC LIMIT 1", (str(user_id),))
@@ -105,7 +108,7 @@ class BotWorker:
     def _track_last_seen(self, user_id):
         """Internal helper to update last seen."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=10.0)
             c = conn.cursor()
             c.execute("INSERT OR REPLACE INTO last_seen (user_id, timestamp) VALUES (?, ?)", 
                       (str(user_id), int(datetime.now().timestamp())))
@@ -119,7 +122,7 @@ class BotWorker:
     def get_user_history(self, user_id):
         """Returns list of {username, timestamp} for a user."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=10.0)
             c = conn.cursor()
             c.execute("SELECT username, timestamp FROM user_history WHERE user_id=? ORDER BY timestamp DESC LIMIT 10", (str(user_id),))
             rows = c.fetchall()
@@ -131,7 +134,7 @@ class BotWorker:
     def get_last_seen(self, user_id):
         """Returns timestamp (int) or None."""
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path, timeout=10.0)
             c = conn.cursor()
             c.execute("SELECT timestamp FROM last_seen WHERE user_id=?", (str(user_id),))
             row = c.fetchone()

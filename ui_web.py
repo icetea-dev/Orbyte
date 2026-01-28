@@ -23,7 +23,8 @@ class WebAPI:
         }
         """
         try:
-            db_path = "activity.db"
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(base_dir, "activity.db")
             if not os.path.exists(db_path):
                 return {'success': False, 'error': 'Database not found'}
 
@@ -37,7 +38,7 @@ class WebAPI:
                 date_list.append(curr.strftime('%Y-%m-%d'))
                 curr += timedelta(days=1)
             
-            conn = sqlite3.connect(db_path)
+            conn = sqlite3.connect(db_path, timeout=10.0)
             c = conn.cursor()
             
             # Helper to get counts per day for a specific type
