@@ -761,20 +761,54 @@ class BotWorker:
             webhook_url = event_config.get("webhook_url", "")
             if not webhook_url:
                 return
+            
+            embed_config = self.config_manager.get("embed", {})
+            style_color = embed_config.get("color", 0x2b2d31)
+            
+            # Ensure color is an integer
+            try:
+                if isinstance(style_color, str):
+                    style_color = int(style_color.lstrip('#'), 16)
+                else:
+                    style_color = int(style_color)
+            except Exception:
+                style_color = 0x2b2d31
+
+            style_author_name = embed_config.get("author_text", "Orbyte")
+            style_author_icon = embed_config.get("author_icon_url", "")
+            style_footer_text = embed_config.get("footer_text", "Orbyte Notification")
+            style_footer_icon = embed_config.get("footer_icon_url", "")
+            style_thumb = embed_config.get("thumbnail_url", "")
+            style_image = embed_config.get("image_url", "")
 
             embed = {
                 "title": data.get("title", f"Event: {event_type}"),
                 "description": data.get("description", ""),
-                "color": data.get("color", 0x36393f),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "footer": {"text": "Orbyte Notification"}
+                "color": style_color,
             }
+            
+            # Apply Styling
+            if style_author_name:
+                embed["author"] = {"name": style_author_name}
+                if style_author_icon:
+                    embed["author"]["icon_url"] = style_author_icon
+            
+            embed["footer"] = {"text": style_footer_text}
+            if style_footer_icon:
+                embed["footer"]["icon_url"] = style_footer_icon
+                
+            if style_thumb:
+                embed["thumbnail"] = {"url": style_thumb}
+            
+            if style_image:
+                embed["image"] = {"url": style_image}
             
             if "fields" in data:
                 embed["fields"] = data["fields"]
                 
             payload = {
-                "username": "Orbyte Notifier",
+                "username": style_author_name if style_author_name else "Orbyte Notifier",
+                "avatar_url": style_author_icon if style_author_icon else None,
                 "embeds": [embed]
             }
 
