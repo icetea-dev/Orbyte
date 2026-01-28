@@ -767,14 +767,14 @@ class BotWorker:
                 "description": data.get("description", ""),
                 "color": data.get("color", 0x36393f),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "footer": {"text": "Selfbot Notification"}
+                "footer": {"text": "Orbyte Notification"}
             }
             
             if "fields" in data:
                 embed["fields"] = data["fields"]
                 
             payload = {
-                "username": "Selfbot Notifier",
+                "username": "Orbyte Notifier",
                 "embeds": [embed]
             }
 
