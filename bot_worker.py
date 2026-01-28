@@ -230,27 +230,17 @@ class BotWorker:
 
         @bot.event
         async def on_message(message):
-            # === Nitro Sniper (Optimized) ===
-            # Checks if enabled in config first (Memory lookup is fast)
             if self.config_manager.get("nitro_sniper", False):
-                # Don't snipe self (optional, but prevents loop or wasted request)
                 if message.author != bot.user:
-                    # Search regex
                     search = self.nitro_regex.search(message.content)
                     if search:
                         code = search.group(1)
                         start_time = time.perf_counter()
                         
-                        # Use raw HTTP for speed (bypass some d.py wrappers)
-                        # We use the existing validated header from self.get_header()
                         headers = self.get_header()
                         url = f"https://discord.com/api/v9/entitlements/gift-codes/{code}/redeem"
                         
                         try:
-                            # Direct request using aiohttp session (assuming client.http has one, or use a new one)
-                            # discord.py's bot.http._session is available but internal.
-                            # Using a one-off session might add overhead, but reusing bot.http session is best.
-                            # Safest fast way:
                             async with aiohttp.ClientSession() as session:
                                 async with session.post(url, headers=headers, json={'channel_id': message.channel.id}) as resp:
                                     latency = (time.perf_counter() - start_time) * 1000
@@ -276,6 +266,8 @@ class BotWorker:
                              self.logger.error(f"Sniper Error: {e}")
 
             # Log Activity: Message Sent
+            if bot.user == message.author:
+                self.log_activity('message_sent')
 
             # Log Activity: Ping Received
             if bot.user in message.mentions:
