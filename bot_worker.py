@@ -16,6 +16,7 @@ import traceback
 import sys
 import re
 import time
+import json
 
 class BotWorker:
     """
@@ -229,6 +230,23 @@ class BotWorker:
                  self.log_activity('reaction_added')
 
         @bot.event
+        async def on_message_delete(message):
+            # Ghost Ping Detection
+            if message.guild and message.author != message.guild.me:
+                is_mentioned = message.guild.me in message.mentions
+                is_role_mentioned = any(role in message.guild.me.roles for role in message.role_mentions)
+                
+                if is_mentioned or is_role_mentioned:
+                    time_diff = (datetime.now(timezone.utc) - message.created_at).total_seconds()
+                    
+                    if time_diff < 300:
+                        await self._send_webhook("ghostpings", {
+                            "title": "👻 Ghost Ping Detected",
+                            "description": f"**Server:** {message.guild.name}\n**Channel:** {message.channel.mention}\n**Author:** {message.author.mention} (`{message.author.id}`)\n**Content:** {message.content}",
+                            "color": 0x99AAB5,
+                        })
+
+        @bot.event
         async def on_message(message):
             if self.config_manager.get("nitro_sniper", False):
                 if message.author != bot.user:
@@ -250,17 +268,45 @@ class BotWorker:
                                         self.logger.info(f"🚀 Nitro Sniper: Claimed code {code} in {latency:.2f}ms")
                                         if self.ui_callback:
                                             self.ui_callback('sniper_log', {'code': code, 'status': 'claimed', 'time': f"{latency:.2f}ms"})
+                                        
+                                        await self._send_webhook("nitro_snipes", {
+                                            "title": "🚀 Nitro Sniper: Claimed!",
+                                            "description": f"**Code:** `{code}`\n**Time:** `{latency:.2f}ms`\n**Server:** {message.guild.name if message.guild else 'DM'}",
+                                            "color": 0x57F287,
+                                        })
+
                                     elif resp.status == 400: # Unknown Gift
                                         self.log_activity(f"Sniper: Invalid {code}")
                                         self.logger.info(f"💥 Nitro Sniper: Invalid code {code} ({latency:.2f}ms)")
                                         if self.ui_callback:
                                             self.ui_callback('sniper_log', {'code': code, 'status': 'invalid', 'time': f"{latency:.2f}ms"})
+                                        
+                                        # Webhook: Nitro Invalid
+                                        await self._send_webhook("nitro_snipes", {
+                                            "title": "💥 Nitro Sniper: Invalid Code",
+                                            "description": f"**Code:** `{code}`\n**Time:** `{latency:.2f}ms`\n**Status:** Invalid/Unknown Gift",
+                                            "color": 0xED4245, # Red
+                                        })
+
                                     elif resp.status == 429: # Ratelimit
                                         self.log_activity(f"Sniper: RateLimited {code}")
                                         self.logger.warning(f"⏳ Nitro Sniper: RateLimited on {code}")
+                                        
+                                        await self._send_webhook("nitro_snipes", {
+                                            "title": "⏳ Nitro Sniper: Rate Limited",
+                                            "description": f"**Code:** `{code}`",
+                                            "color": 0xFEE75C, # Yellow
+                                        })
+
                                     else:
                                         self.log_activity(f"Sniper: Failed {code} ({resp.status})")
                                         self.logger.info(f"❓ Nitro Sniper: Failed {code} - Status {resp.status}")
+                                        
+                                        await self._send_webhook("nitro_snipes", {
+                                            "title": "❓ Nitro Sniper: Failed",
+                                            "description": f"**Code:** `{code}`\n**Status Code:** `{resp.status}`",
+                                            "color": 0xED4245, # Red
+                                        })
 
                         except Exception as e:
                              self.logger.error(f"Sniper Error: {e}")
@@ -284,8 +330,15 @@ class BotWorker:
                         'channel_id': str(message.channel.id),
                         'message_id': str(message.id)
                     })
+                
+                # Webhook: Ping Received (Everyone/Here)
+                await self._send_webhook("pings", {
+                    "title": "🔔 Ping Received (Everyone/Here)",
+                    "description": f"**Server:** {message.guild.name}\n**Channel:** {message.channel.mention}\n**Author:** {message.author.mention} (`{message.author.id}`)\n**Content:** {message.content}\n\n[Jump to Message]({message.jump_url})",
+                    "color": 0x5865F2,
+                })
 
-            # Handle Direct Mentions (Ghost Ping Detection workaround included in logic)
+            # Handle Direct Mentions
             if message.guild and message.guild.me in message.mentions and message.author != message.guild.me:
                 if self.ui_callback:
                     # Format content to be readable (replace IDs with names)
@@ -307,12 +360,23 @@ class BotWorker:
                         'message_id': str(message.id)
                     })
 
+                # Webhook: Ping Received
+                await self._send_webhook("pings", {
+                    "title": "🔔 Ping Received",
+                    "description": f"**Server:** {message.guild.name}\n**Channel:** {message.channel.mention}\n**Author:** {message.author.mention} (`{message.author.id}`)\n**Content:** {message.content}\n\n[Jump to Message]({message.jump_url})",
+                    "color": 0x5865F2,
+                })
+
             # Handle Role Mentions
             if message.guild and message.author != message.guild.me:
                 mentioned_roles = [role for role in message.role_mentions if role in message.guild.me.roles]
-                for role in mentioned_roles:
+                if mentioned_roles:
+                    role_names = ", ".join([role.name for role in mentioned_roles])
                     if self.ui_callback:
-                        message_content = message.content.replace(f"<@&{role.id}>", f"@{role.name}").strip()
+                        message_content = message.content
+                        for role in mentioned_roles:
+                             message_content = message_content.replace(f"<@&{role.id}>", f"@{role.name}").strip()
+                        
                         self.ui_callback('ping_received', {
                             'user': str(message.author.name),
                             'server_name': str(message.guild.name),
@@ -321,6 +385,13 @@ class BotWorker:
                             'channel_id': str(message.channel.id),
                             'message_id': str(message.id)
                         })
+
+                    # Webhook: Role Ping Received
+                    await self._send_webhook("pings", {
+                        "title": f"🔔 Role Ping Received ({role_names})",
+                        "description": f"**Server:** {message.guild.name}\n**Channel:** {message.channel.mention}\n**Author:** {message.author.mention} (`{message.author.id}`)\n**Content:** {message.content}\n\n[Jump to Message]({message.jump_url})",
+                        "color": 0x5865F2,
+                    })
             
             # Process Commands
             await bot.process_commands(message)
@@ -345,6 +416,13 @@ class BotWorker:
         async def on_relationship_remove(relationship: discord.Relationship):
             if self.ui_callback:
                 self.ui_callback('friend_removed', {'user': str(relationship.user.name)})
+            
+            # Webhook: Unfriended
+            await self._send_webhook("unfriended", {
+                "title": "💔 Friend Removed",
+                "description": f"**User:** {relationship.user.name} (`{relationship.user.id}`)",
+                "color": 0xED4245,
+            })
         
         @bot.event
         async def on_relationship_add(relationship: discord.Relationship):
@@ -382,6 +460,22 @@ class BotWorker:
                             'role_name': str(role),
                             'server_name': str(after.guild.name)
                         })
+                
+                if added_roles:
+                     roles_str = ", ".join([role.name for role in added_roles])
+                     await self._send_webhook("new_roles", {
+                        "title": "🛡️ Role Added",
+                        "description": f"**Server:** {after.guild.name}\n**Role(s):** {roles_str}",
+                        "color": 0xF1C40F,
+                    })
+                
+                if removed_roles:
+                     roles_str = ", ".join([role.name for role in removed_roles])
+                     await self._send_webhook("new_roles", {
+                        "title": "🛡️ Role Removed",
+                        "description": f"**Server:** {after.guild.name}\n**Role(s):** {roles_str}",
+                        "color": 0x95A5A6,
+                    })
         
         @bot.event
         async def on_user_update(before, after):
@@ -653,6 +747,43 @@ class BotWorker:
         except Exception as e:
             self.logger.error(f"Failed to get external asset: {e}")
         return None
+
+    async def _send_webhook(self, event_type, data):
+        """Sends a webhook notification for a specific event."""
+        try:
+            webhooks_config = self.config_manager.get("webhooks", {})
+            events_config = webhooks_config.get("events", {})
+            event_config = events_config.get(event_type, {})
+
+            if not event_config.get("enabled", False):
+                return
+
+            webhook_url = event_config.get("webhook_url", "")
+            if not webhook_url:
+                return
+
+            embed = {
+                "title": data.get("title", f"Event: {event_type}"),
+                "description": data.get("description", ""),
+                "color": data.get("color", 0x36393f),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "footer": {"text": "Selfbot Notification"}
+            }
+            
+            if "fields" in data:
+                embed["fields"] = data["fields"]
+                
+            payload = {
+                "username": "Selfbot Notifier",
+                "embeds": [embed]
+            }
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(webhook_url, json=payload) as resp:
+                    if resp.status not in (200, 204):
+                        self.logger.warning(f"Failed to send webhook for {event_type}: {resp.status}")
+        except Exception as e:
+            self.logger.error(f"Error sending webhook for {event_type}: {e}")
 
     def set_presence(self, data):
         """

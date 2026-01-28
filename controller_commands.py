@@ -20,15 +20,18 @@ class Option:
     NUMBER = 10
     ATTACHMENT = 11
 
-    def __new__(cls, name, description, type=STRING, required=True, autocomplete=False):
+    def __new__(cls, name, description, type=STRING, required=True, autocomplete=False, choices=None):
         """Helper to create an option dictionary."""
-        return {
+        data = {
             "name": name,
             "description": description,
             "type": type,
             "required": required,
             "autocomplete": autocomplete
         }
+        if choices:
+            data["choices"] = choices
+        return data
 
 def get_arg(interaction, name, default=None):
     """
@@ -208,10 +211,6 @@ async def send_smart_embed(client, interaction, embed, delete_after=None):
         
         # === Step 3: Handle Based on Forwarding Config ===
         is_forwarding = client.config_manager.get("discord.controller_forwarding", False)
-
-        # If Forwarding is OFF: The embed will be Ephemeral (Private).
-        # We CANNOT wait for a message event because ephemeral messages don't trigger on_message.
-        # So we just invoke and assume success.
         
         if not is_forwarding:
             # Invoke command (Ephemeral)

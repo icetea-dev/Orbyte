@@ -36,6 +36,15 @@ class ConfigManager:
                 "button1_url": "",
                 "button2_label": "",
                 "button2_url": ""
+            },
+            "webhooks": {
+                "events": {
+                    "pings": { "enabled": False, "webhook_url": "" },
+                    "ghostpings": { "enabled": False, "webhook_url": "" },
+                    "nitro_snipes": { "enabled": False, "webhook_url": "" },
+                    "new_roles": { "enabled": False, "webhook_url": "" },
+                    "unfriended": { "enabled": False, "webhook_url": "" }
+                }
             }
         }
         self.config = self.load_config()
