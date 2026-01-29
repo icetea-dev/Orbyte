@@ -416,6 +416,14 @@ class BotWorker:
                 })
 
         @bot.event
+        async def on_guild_update(before, after):
+            if self.ui_callback:
+                self.ui_callback('guild_updated', {
+                    'old_name': str(before.name),
+                    'new_name': str(after.name)
+                })
+
+        @bot.event
         async def on_relationship_remove(relationship: discord.Relationship):
             if self.ui_callback:
                 self.ui_callback('friend_removed', {'user': str(relationship.user.name)})
@@ -431,18 +439,22 @@ class BotWorker:
         async def on_relationship_add(relationship: discord.Relationship):
             if self.ui_callback:
                 user_str = str(relationship.user.name)
-                if relationship.type == discord.RelationshipType.friend:
-                    self.ui_callback('friend_added', {'user': user_str})
-                elif relationship.type == discord.RelationshipType.incoming_request:
+                if relationship.type == discord.RelationshipType.incoming_request:
                     self.ui_callback('friend_request', {'user': user_str})
                 elif relationship.type == discord.RelationshipType.outgoing_request:
                     self.ui_callback('friend_request_sent', {'user': user_str})
-                
+        
+        @bot.event
+        async def on_relationship_update(before, after):
+            if self.ui_callback:
+                if before.type != after.type:
+                    if after.type == discord.RelationshipType.friend:
+                        self.ui_callback('friend_added', {'user': str(after.user.name)})
+
         @bot.event
         async def on_member_update(before, after):
-            # Pass to base tracking
-            pass # We'll handle this in user_update for universal tracking
-            
+            pass
+
             if before.id == bot.user.id:
                 # Tracking self roles for UI
                 if self.ui_callback:
@@ -532,7 +544,6 @@ class BotWorker:
             # If any task failed, handle it
             for task in done:
                 if task.exception():
-                    # Log exception if needed, though run_ wrapper handles it
                     pass
 
         except Exception as e:

@@ -323,7 +323,7 @@ class OrbyteInterface {
                 this.addActivityLog(`Joined Server: <span class="highlight">${data.server_name}</span>${serverLink}`);
                 break;
             case 'server_left':
-                this.addActivityLog(`Left/kick Server: <span class="highlight">${data.server_name}</span>`);
+                this.addActivityLog(`Left/Kicked from Server: <span class="highlight">${data.server_name}</span>`);
                 break;
             case 'friend_removed':
                 this.addActivityLog(`Removed Friend: <span class="highlight">${data.user}</span>`);
@@ -333,6 +333,9 @@ class OrbyteInterface {
                 break;
             case 'role_removed':
                 this.addActivityLog(`Role Removed: <span class="highlight">${data.role_name}</span> in <span class="highlight">${data.server_name}</span>`);
+                break;
+            case 'guild_updated':
+                this.addActivityLog(`Server renamed from <span class="highlight">${data.old_name}</span> to <span class="highlight">${data.new_name}</span>`);
                 break;
             case 'startup_progress':
                 this.updateLoadingStatus(data.message);
