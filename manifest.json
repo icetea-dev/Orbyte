@@ -4,6 +4,7 @@
     "controller_worker.py",
     "config_manager.py",
     "ui_web.py",
+    "message_handler.py",
     "platform_spoofer.py",
     "controller_commands.py",
     "requirements.txt",
@@ -14,5 +15,6 @@
     "controller_cogs/general.py",
     "controller_cogs/info.py",
     "controller_cogs/settings.py",
-    "controller_cogs/troll.py"
+    "controller_cogs/troll.py",
+    "manifest.json"
 ]
