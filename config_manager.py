@@ -21,6 +21,9 @@ class ConfigManager:
             "nitro_sniper": {
                 "enabled": False
             },
+            "giveaway_sniper": {
+                "enabled": False
+            },
             "rpc": {
                 "enabled": False,
                 "name": "",
@@ -42,6 +45,7 @@ class ConfigManager:
                     "pings": { "enabled": False, "webhook_url": "" },
                     "ghostpings": { "enabled": False, "webhook_url": "" },
                     "nitro_snipes": { "enabled": False, "webhook_url": "" },
+                    "giveaways": { "enabled": False, "webhook_url": "" },
                     "new_roles": { "enabled": False, "webhook_url": "" },
                     "unfriended": { "enabled": False, "webhook_url": "" }
                 }

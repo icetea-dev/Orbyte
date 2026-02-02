@@ -298,7 +298,6 @@ class OrbyteInterface {
                     const guildPart = data.guild_id ? data.guild_id : '@me';
                     const appUrl = `discord://-/channels/${guildPart}/${data.channel_id}/${data.message_id}`;
                     const webUrl = `https://discord.com/channels/${guildPart}/${data.channel_id}/${data.message_id}`;
-                    // Use pywebview API to open discord:// link to avoid browser prompt
                     link = ` <a href="#" onclick="window.pywebview.api.open_url('${appUrl}'); return false;" title="Open in App" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.9em; margin-left: 5px;">(App)</a> <a href="#" onclick="window.pywebview.api.open_url('${webUrl}'); return false;" title="Open in Browser" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8em;">(Web)</a>`;
                 }
                 this.addActivityLog(`Received Ping from: <span class="highlight">${data.user}</span> in <span class="highlight">${data.server_name}</span>${link}<br><span class="log-message-content">${data.content}</span>`);
@@ -317,7 +316,6 @@ class OrbyteInterface {
                 if (data.guild_id) {
                     const appUrl = `discord://-/channels/${data.guild_id}`;
                     const webUrl = `https://discord.com/channels/${data.guild_id}`;
-                    // Use pywebview API to open discord:// link to avoid browser prompt
                     serverLink = ` <a href="#" onclick="window.pywebview.api.open_url('${appUrl}'); return false;" title="Open in App" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.9em; margin-left: 5px;">(App)</a> <a href="#" onclick="window.pywebview.api.open_url('${webUrl}'); return false;" title="Open in Browser" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8em;">(Web)</a>`;
                 }
                 this.addActivityLog(`Joined Server: <span class="highlight">${data.server_name}</span>${serverLink}`);
@@ -361,6 +359,16 @@ class OrbyteInterface {
                 else if (data.status === 'ratelimited') statusColor = 'var(--accent-orange)';
 
                 this.addActivityLog(`Nitro Sniper: <span style="color:${statusColor}">${data.status.toUpperCase()}</span> code <span class="highlight">${data.code}</span> in ${data.time}`);
+                break;
+            case 'giveaway_log':
+                let giveawayLink = '';
+                if (data.channel_id && data.message_id) {
+                    const guildPart = data.guild_id ? data.guild_id : '@me';
+                    const appUrl = `discord://-/channels/${guildPart}/${data.channel_id}/${data.message_id}`;
+                    const webUrl = `https://discord.com/channels/${guildPart}/${data.channel_id}/${data.message_id}`;
+                    giveawayLink = ` <a href="#" onclick="window.pywebview.api.open_url('${appUrl}'); return false;" title="Open in App" style="color: var(--accent-cyan); text-decoration: none; font-size: 0.9em; margin-left: 5px;">(App)</a> <a href="#" onclick="window.pywebview.api.open_url('${webUrl}'); return false;" title="Open in Browser" style="color: var(--text-secondary); text-decoration: none; font-size: 0.8em;">(Web)</a>`;
+                }
+                this.addActivityLog(`Giveaway Sniper: <span style="color:#F1C40F">JOINED</span> <span class="highlight">${data.prize}</span> in ${data.server}${giveawayLink} <span style="font-size:0.8em; opacity:0.7">(${data.time})</span>`);
                 break;
             default:
                 if (window.handleBotEvent) window.handleBotEvent(eventType, data);
