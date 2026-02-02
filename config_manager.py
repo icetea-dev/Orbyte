@@ -19,10 +19,10 @@ class ConfigManager:
                 "background_file": ""
             },
             "nitro_sniper": {
-                "enabled": False
+                "enabled": True
             },
             "giveaway_sniper": {
-                "enabled": False
+                "enabled": True
             },
             "rpc": {
                 "enabled": False,
