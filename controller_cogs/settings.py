@@ -128,3 +128,21 @@ async def settings_webhook(client, interaction):
         ephemeral=True
     )
 
+@settings.command("giveaway_sniper", "Enable or disable the Giveaway Sniper", options=[
+    Option("enabled", "Enable Giveaway Sniper?", Option.BOOLEAN, required=True)
+])
+async def settings_giveaway_sniper(client, interaction):
+    """
+    Handler for /settings giveaway_sniper.
+    Enables or disables the automatic Giveaway claimer.
+    """
+    from controller_commands import get_arg
+    new_state = get_arg(interaction, "enabled")
+    client.config_manager.set("giveaway_sniper", new_state)
+    
+    state_str = "🚀 Sniper ON" if new_state else "🛑 Sniper OFF"
+    await client.send_response(
+        interaction,
+        f"✅ Configuration updated!\nMode: **{state_str}**",
+        ephemeral=True
+    )
