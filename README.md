@@ -21,7 +21,7 @@ A comprehensive dual-instance Discord bot specifically designed for power users.
 
 ### 🛠️ Advanced Tools
 - **Nitro Sniper**: Optimized gift code claimer (configurable).
-- **Giveaway Sniper**: Optimized giveaway claimer (configurable).
+- **Giveaway Sniper**: Optimized giveaway joiner (configurable).
 - **Platform Spoofer**: Mask your client connection (Mobile, Web, Desktop).
 - **Code Editor**: Monaco-based editor for on-the-fly script modifications.
 
