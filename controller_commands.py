@@ -109,7 +109,7 @@ def controller_command(name, description, options=None, autocomplete=None):
         return func
     return decorator
 
-async def send_smart_embed(client, interaction, embed, delete_after=None):
+async def send_smart_embed(client, interaction, embed, delete_after=None, forward_delay=0, skip_thumb=False):
     """
     Sends an embed by having the Selfbot invoke the Controller Bot's /embed command,
     then forwarding the resulting message to the target channel.
@@ -189,6 +189,7 @@ async def send_smart_embed(client, interaction, embed, delete_after=None):
         
         if embed.image and embed.image.url:
             embed_image_url = embed.image.url
+            embed_is_thumb = False
         elif embed.thumbnail and embed.thumbnail.url:
             embed_image_url = embed.thumbnail.url
             embed_is_thumb = True
@@ -204,6 +205,9 @@ async def send_smart_embed(client, interaction, embed, delete_after=None):
             cmd_kwargs["thumb"] = embed_is_thumb
         if delete_after:
             cmd_kwargs["delete_after"] = int(delete_after)
+        
+        if skip_thumb:
+            cmd_kwargs["skip_thumb"] = True
             
         # Pass author name if present in the original embed
         if embed.author and embed.author.name:
@@ -273,6 +277,10 @@ async def send_smart_embed(client, interaction, embed, delete_after=None):
                 pass
         
         if target_channel:
+            # Wait a bit for the embed image to be processed/proxied by Discord
+            if forward_delay and forward_delay > 0:
+                await asyncio.sleep(forward_delay)
+            
             # Forward the message!
             await response_msg.forward(target_channel)
             

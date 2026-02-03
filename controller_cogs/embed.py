@@ -10,6 +10,7 @@ import datetime
         Option("title", "Title of the embed (Optional)", Option.STRING, required=False),
         Option("image_url", "URL of an image/thumbnail (Optional)", Option.STRING, required=False),
         Option("thumb", "Use custom thumbnail from settings? (Default: False)", Option.BOOLEAN, required=False),
+        Option("skip_thumb", "Skip default thumbnail? (Default: False)", Option.BOOLEAN, required=False),
         Option("author_name", "Override author name (Optional)", Option.STRING, required=False),
         Option("delete_after", "Delete after N seconds (Optional)", Option.INTEGER, required=False)
     ]
@@ -36,6 +37,7 @@ async def embed_command(client, interaction):
     title = get_arg(interaction, "title")
     image_url = get_arg(interaction, "image_url")
     use_thumb = get_arg(interaction, "thumb", default=False)
+    skip_thumb = get_arg(interaction, "skip_thumb", default=False)
     custom_author_name = get_arg(interaction, "author_name")
     delete_seconds = get_arg(interaction, "delete_after")
 
@@ -56,12 +58,16 @@ async def embed_command(client, interaction):
     if final_author_name or style["author_icon_url"]:
         embed.set_author(name=final_author_name or "", icon_url=style["author_icon_url"] if style["author_icon_url"] else None)
     
+    # Apply default thumbnail first (if valid and NOT skipped)
+    if style["thumbnail_url"] and not skip_thumb:
+        embed.set_thumbnail(url=style["thumbnail_url"])
+    
     if use_thumb:
         if image_url:
+             # Override default thumbnail with the provided one
              embed.set_thumbnail(url=image_url)
-        elif style["thumbnail_url"]:
-            embed.set_thumbnail(url=style["thumbnail_url"])
     elif image_url:
+        # Set main image (keeping the default thumbnail if set)
         embed.set_image(url=image_url)
     
     embed.set_footer(text=style["footer_text"], icon_url=style["footer_icon_url"] if style["footer_icon_url"] else None)

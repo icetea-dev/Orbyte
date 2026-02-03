@@ -146,3 +146,22 @@ async def settings_giveaway_sniper(client, interaction):
         f"✅ Configuration updated!\nMode: **{state_str}**",
         ephemeral=True
     )
+
+@settings.command("risky_mode", "Enable or disable risky mode", options=[
+    Option("enabled", "Enable risky mode?", Option.BOOLEAN, required=True)
+])
+async def settings_risky_mode(client, interaction):
+    """
+    Handler for /settings risky_mode.
+    Enables or disables risky mode.
+    """
+    from controller_commands import get_arg
+    new_state = get_arg(interaction, "enabled")
+    client.config_manager.set("risky_mode", new_state)
+    
+    state_str = "🚀 Risky mode ON" if new_state else "🛑 Risky mode OFF"
+    await client.send_response(
+        interaction,
+        f"✅ Configuration updated!\nMode: **{state_str}**",
+        ephemeral=True
+    )

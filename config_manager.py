@@ -24,6 +24,9 @@ class ConfigManager:
             "giveaway_sniper": {
                 "enabled": True
             },
+            "risky_mode": {
+                "enabled": False
+            },
             "rpc": {
                 "enabled": False,
                 "name": "",
@@ -49,6 +52,14 @@ class ConfigManager:
                     "new_roles": { "enabled": False, "webhook_url": "" },
                     "unfriended": { "enabled": False, "webhook_url": "" }
                 }
+            },
+            "embed": {
+                "author_icon_url": "",
+                "author_text": "",
+                "thumbnail_url": "",
+                "footer_icon_url": "",
+                "footer_text": "",
+                "color": ""
             }
         }
         self.config = self.load_config()
