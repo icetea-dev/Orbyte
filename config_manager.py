@@ -18,15 +18,9 @@ class ConfigManager:
             "ui": {
                 "background_file": ""
             },
-            "nitro_sniper": {
-                "enabled": True
-            },
-            "giveaway_sniper": {
-                "enabled": True
-            },
-            "risky_mode": {
-                "enabled": False
-            },
+            "nitro_sniper": True,
+            "giveaway_sniper": True,
+            "risky_mode": False,
             "rpc": {
                 "enabled": False,
                 "name": "",
