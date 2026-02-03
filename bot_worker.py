@@ -261,11 +261,12 @@ class BotWorker:
 
         @bot.event
         async def on_guild_update(before, after):
-            if self.ui_callback:
-                self.ui_callback('guild_updated', {
-                    'old_name': str(before.name),
-                    'new_name': str(after.name)
-                })
+            if before.name != after.name:
+                if self.ui_callback:
+                    self.ui_callback('guild_updated', {
+                        'old_name': str(before.name),
+                        'new_name': str(after.name)
+                    })
 
         @bot.event
         async def on_relationship_remove(relationship: discord.Relationship):

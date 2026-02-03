@@ -13,7 +13,9 @@
     "interface/style.css",
     "controller_cogs/embed.py",
     "controller_cogs/general.py",
+    "controller_cogs/help.py",
     "controller_cogs/info.py",
+    "controller_cogs/nsfw.py",
     "controller_cogs/settings.py",
     "controller_cogs/troll.py",
     "manifest.json"
