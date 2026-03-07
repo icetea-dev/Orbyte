@@ -102,65 +102,77 @@ class MessageHandler:
         if not self.worker.config_manager.get("giveaway_sniper", False):
             return
 
-        # Giveaway Bot ID
-        if message.author.id == 294882584201003009:
-            if not message.embeds:
-                return
-            
-            embed = message.embeds[0]
-            embed_dict = embed.to_dict()
-            
-            description = embed_dict.get('description', '').lower()
-            title = embed_dict.get('title', '').lower()
-            footer = embed_dict.get('footer', {}).get('text', '').lower()
-            author = embed_dict.get('author', {}).get('name', '').lower()
+        giveaway_config = {
+            294882584201003009: ["enter-giveaway"], # GiveawayBot
+            1341497034326147083: ["participate"], # Mee6 Esport Bot on War Thunder Esport server
+            1229067680716427335: ["giveaways:"], # Dyno
+            318312854816161792: ["giveaway:"] # Draftbot
+        }
 
-            blacklisted_words = ['ban', 'banned', 'timeout', 'mute', 'selfbot']
-            if any(word in title for word in blacklisted_words):
-                return
-            
-            if 'ended' in footer or 'winner' in title or description.strip().startswith('ended') or 'ended' in title:
-                return
+        if message.author.id not in giveaway_config:
+            return
 
-            if not message.components:
-                return
+        allowed_ids = giveaway_config[message.author.id]
+        blacklisted_words = ['ban', 'banned', 'timeout', 'mute', 'selfbot']
+        
+        if not message.embeds:
+            return
+        
+        embed = message.embeds[0]
+        embed_dict = embed.to_dict()
+        
+        description = embed_dict.get('description', '').lower()
+        title = embed_dict.get('title', '').lower()
+        footer = embed_dict.get('footer', {}).get('text', '').lower()
 
-            try:
-                for row in message.components:
-                    for component in row.children:
-                        if component.type == discord.ComponentType.button and component.custom_id == "enter-giveaway":
-                            start_time = time.perf_counter()                            
-                            await asyncio.sleep(random.uniform(3, 10)) 
-                            await component.click()
-                            
-                            latency = (time.perf_counter() - start_time) * 1000
-                            
-                            self.worker.log_activity(f"Giveaway Joined: {message.guild.name if message.guild else 'DM'}")
-                            self.worker.logger.info(f"🎉 Giveaway Sniper: Joined giveaway in {message.guild.name} ({latency:.2f}ms)")
-                            
-                            prize = embed_dict.get('title', 'Unknown Prize')
-                            if self.worker.ui_callback:
-                                self.worker.ui_callback('giveaway_log', {
-                                    'prize': prize,
-                                    'server': message.guild.name, 
-                                    'status': 'joined', 
-                                    'time': f"{latency:.2f}ms",
-                                    'guild_id': str(message.guild.id),
-                                    'channel_id': str(message.channel.id),
-                                    'message_id': str(message.id)
-                                })
-                                
-                            # Webhook Notification
-                            await self.worker._send_webhook("giveaways", {
-                                "title": "🎉 Giveaway Joined",
-                                "description": f"**Server:** {message.guild.name}\n**Channel:** {message.channel.mention}\n**Prize:** {prize}\n**Time:** `{latency:.2f}ms`\n\n[Jump to Giveaway]({message.jump_url}) | [Open in App](discord://-/channels/{message.guild.id}/{message.channel.id}/{message.id}) | [Open in Web](https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id})",
-                                "color": 0xF1C40F,
+        if any(word in title for word in blacklisted_words):
+            return
+        
+        if 'ended' in footer or 'winner' in title or description.strip().startswith('ended') or 'ended' in title:
+            return
+
+        if not message.components:
+            return
+
+        try:
+            for row in message.components:
+                for component in row.children:
+                    if component.type == discord.ComponentType.button and any(component.custom_id.startswith(prefix) for prefix in allowed_ids):
+                        start_time = time.perf_counter()                            
+                        
+                        await asyncio.sleep(random.uniform(3, 10)) 
+                        await component.click()
+                        
+                        latency = (time.perf_counter() - start_time) * 1000
+                        server_name = message.guild.name if message.guild else 'DM'
+                        
+                        self.worker.log_activity(f"Giveaway Joined: {server_name}")
+                        self.worker.logger.info(f"🎉 Giveaway Sniper: Joined giveaway in {server_name} ({latency:.2f}ms)")
+                        
+                        prize = embed_dict.get('title', 'Unknown Prize')
+                        if self.worker.ui_callback:
+                            self.worker.ui_callback('giveaway_log', {
+                                'prize': prize,
+                                'server': server_name, 
+                                'status': 'joined', 
+                                'time': f"{latency:.2f}ms",
+                                'guild_id': str(message.guild.id) if message.guild else '0',
+                                'channel_id': str(message.channel.id),
+                                'message_id': str(message.id)
                             })
                             
-                            return
+                        # Webhook Notification
+                        await self.worker._send_webhook("giveaways", {
+                            "title": "🎉 Giveaway Joined",
+                            "description": f"**Server:** {server_name}\n**Channel:** {message.channel.mention}\n**Prize:** {prize}\n**Time:** `{latency:.2f}ms`\n\n[Jump to Giveaway]({message.jump_url})",
+                            "color": 0xF1C40F,
+                        })
+                        
+                        return # Successfully joined, exit method
                             
-            except Exception as e:
-                self.worker.logger.error(f"Giveaway Sniper Error: {e}")
+        except Exception as e:
+            self.worker.logger.error(f"Giveaway Sniper Error: {e}")
+    
 
     def _log_activity_stats(self, message):
         """
